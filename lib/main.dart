@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'screens/capabilities_screen.dart';
 
 void main() {
   runApp(const DiadocApp());
@@ -23,6 +24,9 @@ class DiadocApp extends StatelessWidget {
         fontFamily: 'Roboto',
       ),
       home: const HomeScreen(),
+      routes: {
+        '/capabilities': (context) => const CapabilitiesScreen(),
+      },
       debugShowCheckedModeBanner: false,
     );
   }

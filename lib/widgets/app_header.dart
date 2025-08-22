@@ -55,11 +55,11 @@ class AppHeader extends StatelessWidget {
               // Навигация
               Row(
                 children: [
-                  _buildNavItem('Возможности'),
-                  _buildNavItem('Платформы'),
-                  _buildNavItem('Цены'),
-                  _buildNavItem('Интеграция'),
-                  _buildNavItem('Документация'),
+                  _buildNavItem(context, 'Возможности', '/capabilities'),
+                  _buildNavItem(context, 'Платформы', null),
+                  _buildNavItem(context, 'Цены', null),
+                  _buildNavItem(context, 'Интеграция', null),
+                  _buildNavItem(context, 'Документация', null),
                 ],
               ),
               
@@ -103,11 +103,15 @@ class AppHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(String title) {
+  Widget _buildNavItem(BuildContext context, String title, String? routeName) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: TextButton(
-        onPressed: () {},
+        onPressed: routeName == null
+            ? null
+            : () {
+                Navigator.of(context).pushNamed(routeName);
+              },
         child: Text(
           title,
           style: const TextStyle(
