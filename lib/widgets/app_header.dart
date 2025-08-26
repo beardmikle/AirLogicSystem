@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/login_screen.dart';
 
 class AppHeader extends StatelessWidget {
   const AppHeader({super.key});
@@ -25,26 +26,24 @@ class AppHeader extends StatelessWidget {
               // Логотип
               Row(
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1976D2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.description,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'AirLogicSystem',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1976D2),
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/',
+                        (route) => false,
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: const Text(
+                        'AirLogicSystem',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1976D2),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -56,10 +55,10 @@ class AppHeader extends StatelessWidget {
               Row(
                 children: [
                   _buildNavItem(context, 'Возможности', '/capabilities'),
-                  _buildNavItem(context, 'Платформы', null),
-                  _buildNavItem(context, 'Цены', null),
-                  _buildNavItem(context, 'Интеграция', null),
-                  _buildNavItem(context, 'Документация', null),
+                  // _buildNavItem(context, 'Платформы', null),
+                  // _buildNavItem(context, 'Цены', null),
+                  // _buildNavItem(context, 'Интеграция', null),
+                  // _buildNavItem(context, 'Документация', null),
                 ],
               ),
               
@@ -68,30 +67,27 @@ class AppHeader extends StatelessWidget {
               // Кнопки
               Row(
                 children: [
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text(
+                  TextButton.icon(
+                    onPressed: () async {
+                      final result = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => const LoginDialog(),
+                      );
+                      if (result == true && context.mounted) {
+                        Navigator.of(context).pushNamed('/admin');
+                      }
+                    },
+                    icon: const Icon(
+                      Icons.person,
+                      color: Color(0xFF1976D2),
+                      size: 20,
+                    ),
+                    label: const Text(
                       'Войти',
                       style: TextStyle(
                         color: Color(0xFF1976D2),
                         fontWeight: FontWeight.w500,
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1976D2),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Подключиться',
-                      style: TextStyle(fontWeight: FontWeight.w500),
                     ),
                   ),
                 ],

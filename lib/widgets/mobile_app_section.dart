@@ -58,7 +58,7 @@ class MobileAppSection extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         const Text(
-          'Управляйте газоанализаторами с iPhone, iPad, Android устройств. Получайте уведомления, просматривайте данные и управляйте настройками в реальном времени.',
+          'Управляйте мониторингом устройств с iPhone, iPad, Android устройств. Получайте уведомления, просматривайте данные и управляйте настройками в реальном времени.',
           style: TextStyle(
             fontSize: 18,
             color: Colors.black54,

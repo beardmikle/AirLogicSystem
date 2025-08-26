@@ -156,22 +156,26 @@ class BenefitsSection extends StatelessWidget {
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildChart(
-                            title: 'ГФУ (R134a, R123, R143a)',
-                            data: const {
-                              '1,1,1,2‑тетрафторэтан (R134a)': 30,
-                              '1,1,1‑трифтор‑2,2‑дихлорэтан (R123)': 20,
-                              '1,1,1‑Трифторэтан (R143a)': 25,
-                            },
+                          Expanded(
+                            child: _buildChart(
+                              title: 'ГФУ (R134a, R123, R143a)',
+                              data: const {
+                                '1,1,1,2‑тетрафторэтан (R134a)': 30,
+                                '1,1,1‑трифтор‑2,2‑дихлорэтан (R123)': 20,
+                                '1,1,1‑Трифторэтан (R143a)': 25,
+                              },
+                            ),
                           ),
                           const SizedBox(width: 24),
-                          _buildChart(
-                            title: 'ХФУ (R113, R141b, R114b2)',
-                            data: const {
-                              '1,1,2‑трифтор‑1,2,2‑трихлорэтан (R113)': 35,
-                              '1,1‑дихлор‑1‑фторэтан (R141b)': 25,
-                              '1,2‑Дибром‑1,1,2,2‑тетрафторэтан (R114b2)': 15,
-                            },
+                          Expanded(
+                            child: _buildChart(
+                              title: 'ХФУ (R113, R141b, R114b2)',
+                              data: const {
+                                '1,1,2‑трифтор‑1,2,2‑трихлорэтан (R113)': 35,
+                                '1,1‑дихлор‑1‑фторэтан (R141b)': 25,
+                                '1,2‑Дибром‑1,1,2,2‑тетрафторэтан (R114b2)': 15,
+                              },
+                            ),
                           ),
                          
                         ],
@@ -183,31 +187,40 @@ class BenefitsSection extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              _buildChart(
-                                title: 'ГФУ (R134a, R123, R143a)',
-                                data: const {
-                                  '1,1,1,2‑тетрафторэтан (R134a)': 30,
-                                  '1,1,1‑трифтор‑2,2‑дихлорэтан (R123)': 20,
-                                  '1,1,1‑Трифторэтан (R143a)': 25,
-                                },
+                              Expanded(
+                                child: _buildChart(
+                                  title: 'ГФУ (R134a, R123, R143a)',
+                                  data: const {
+                                    '1,1,1,2‑тетрафторэтан (R134a)': 30,
+                                    '1,1,1‑трифтор‑2,2‑дихлорэтан (R123)': 20,
+                                    '1,1,1‑Трифторэтан (R143a)': 25,
+                                  },
+                                ),
                               ),
                               const SizedBox(width: 24),
-                              _buildChart(
-                                title: 'ХФУ (R113, R141b, R114b2)',
-                                data: const {
-                                  '1,1,2‑трифтор‑1,2,2‑трихлорэтан (R113)': 35,
-                                  '1,1‑дихлор‑1‑фторэтан (R141b)': 25,
-                                  '1,2‑Дибром‑1,1,2,2‑тетрафторэтан (R114b2)': 15,
-                                },
+                              Expanded(
+                                child: _buildChart(
+                                  title: 'ХФУ (R113, R141b, R114b2)',
+                                  data: const {
+                                    '1,1,2‑трифтор‑1,2,2‑трихлорэтан (R113)': 35,
+                                    '1,1‑дихлор‑1‑фторэтан (R141b)': 25,
+                                    '1,2‑Дибром‑1,1,2,2‑тетрафторэтан (R114b2)': 15,
+                                  },
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 24),
-                          _buildChart(
-                            title: 'Прочие',
-                            data: const {
-                              '1,2‑Дихлорэтан': 40,
-                            },
+                          Center(
+                            child: SizedBox(
+                              width: 300,
+                              child: _buildChart(
+                                title: 'Прочие',
+                                data: const {
+                                  '1,2‑Дихлорэтан': 40,
+                                },
+                              ),
+                            ),
                           ),
                         ],
                       );
@@ -337,6 +350,7 @@ class BenefitsSection extends StatelessWidget {
             size: chartSize,
             title: title,
             isResponsive: true,
+            forceVerticalLabels: true, // Принудительно вертикальные названия
           ),
         );
       },

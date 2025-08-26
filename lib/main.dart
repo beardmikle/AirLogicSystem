@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 import 'screens/capabilities_screen.dart';
+import 'screens/admin_screen.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'services/session_service.dart';
+import 'services/device_db_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await SessionService.init();
+  await DeviceDbService.init();
   runApp(const DiadocApp());
 }
 
@@ -26,6 +34,7 @@ class DiadocApp extends StatelessWidget {
       home: const HomeScreen(),
       routes: {
         '/capabilities': (context) => const CapabilitiesScreen(),
+        '/admin': (context) => const AdminScreen(),
       },
       debugShowCheckedModeBanner: false,
     );

@@ -7,6 +7,7 @@ class SimplePieChart extends StatelessWidget {
   final double size;
   final String? title;
   final bool isResponsive;
+  final bool forceVerticalLabels;
 
   const SimplePieChart({
     super.key,
@@ -15,6 +16,7 @@ class SimplePieChart extends StatelessWidget {
     this.size = 200,
     this.title,
     this.isResponsive = true,
+    this.forceVerticalLabels = false,
   });
 
   @override
@@ -83,6 +85,7 @@ class SimplePieChart extends StatelessWidget {
               data: data,
               colors: colorPalette,
               isResponsive: isResponsive,
+              forceVerticalLabels: forceVerticalLabels,
             ),
           ],
         );
@@ -119,7 +122,7 @@ class _PiePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     final center = rect.center;
-    final radius = math.min(size.width, size.height) / 2;
+    final radius = math.min(size.width, size.height) / 3;
 
     final paint = Paint()
       ..style = PaintingStyle.fill
@@ -158,11 +161,13 @@ class _Legend extends StatelessWidget {
   final Map<String, double> data;
   final List<Color> colors;
   final bool isResponsive;
+  final bool forceVerticalLabels;
 
   const _Legend({
     required this.data,
     required this.colors,
     this.isResponsive = true,
+    this.forceVerticalLabels = false,
   });
 
   @override
@@ -171,10 +176,11 @@ class _Legend extends StatelessWidget {
     
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Адаптивная легенда
-        if (constraints.maxWidth < 300) {
-          // Очень узкие экраны - вертикальная легенда
+        // Принудительная вертикальная легенда или адаптивная
+        if (forceVerticalLabels || constraints.maxWidth < 300) {
+          // Вертикальная легенда - все элементы в столбец
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               for (int i = 0; i < entries.length; i++)
                 Padding(
@@ -183,12 +189,13 @@ class _Legend extends StatelessWidget {
                     color: colors[i % colors.length],
                     label: entries[i].key,
                     isResponsive: isResponsive,
+                    isVertical: true,
                   ),
                 ),
             ],
           );
         } else {
-          // Широкие экраны - горизонтальная легенда
+          // Горизонтальная легенда - элементы в ряд с переносом
           return Wrap(
             spacing: 12,
             runSpacing: 8,
@@ -199,6 +206,7 @@ class _Legend extends StatelessWidget {
                   color: colors[i % colors.length],
                   label: entries[i].key,
                   isResponsive: isResponsive,
+                  isVertical: false,
                 ),
             ],
           );
@@ -212,11 +220,13 @@ class _LegendItem extends StatelessWidget {
   final Color color;
   final String label;
   final bool isResponsive;
+  final bool isVertical;
 
   const _LegendItem({
     required this.color,
     required this.label,
     this.isResponsive = true,
+    this.isVertical = false,
   });
 
   @override
@@ -226,48 +236,58 @@ class _LegendItem extends StatelessWidget {
         // Адаптивный размер элементов легенды
         double iconSize = 12;
         double fontSize = 12;
-        double maxWidth = 200;
+        double maxWidth = isVertical ? 300 : 200;
         
         if (isResponsive) {
           if (constraints.maxWidth < 400) {
             iconSize = 10;
             fontSize = 10;
-            maxWidth = 150;
+            maxWidth = isVertical ? 250 : 150;
           } else if (constraints.maxWidth < 600) {
             iconSize = 12;
             fontSize = 11;
-            maxWidth = 180;
+            maxWidth = isVertical ? 280 : 180;
           } else {
             iconSize = 12;
             fontSize = 12;
-            maxWidth = 200;
+            maxWidth = isVertical ? 300 : 200;
           }
         }
 
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: iconSize,
-              height: iconSize,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-            const SizedBox(width: 6),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: fontSize,
-                  color: Colors.black87,
+        return Container(
+          constraints: BoxConstraints(
+            maxWidth: maxWidth,
+            minWidth: isVertical ? 200 : 100,
+          ),
+          child: Row(
+            mainAxisSize: isVertical ? MainAxisSize.max : MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: iconSize,
+                height: iconSize,
+                margin: const EdgeInsets.only(top: 2),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(3),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    color: Colors.black87,
+                    height: 1.3,
+                  ),
+                  softWrap: true,
+                  maxLines: isVertical ? 3 : 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         );
       },
     );

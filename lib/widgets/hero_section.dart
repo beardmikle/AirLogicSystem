@@ -20,7 +20,7 @@ class HeroSection extends StatelessWidget {
       child: Column(
         children: [
           const Text(
-            'Удаленное управление\nгазоанализаторами',
+            'Удаленный мониторинг\nустройств',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 48,
@@ -31,7 +31,7 @@ class HeroSection extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           const Text(
-            'Управляйте газоанализаторами удаленно через приложения\niOS, Android, Web, Windows, Linux, macOS. Мониторинг в реальном времени.',
+            'Удаленный мониторинг устройств удаленно через приложения\niOS, Android, Web, Windows, Linux, macOS. Мониторинг в реальном времени.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 20,
@@ -63,8 +63,8 @@ class HeroSection extends StatelessWidget {
               OutlinedButton(
                 onPressed: () {},
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF1976D2),
-                  side: const BorderSide(color: Color(0xFF1976D2), width: 2),
+                  foregroundColor: const Color(0xFF4CAF50),
+                  side: const BorderSide(color: Color(0xFF4CAF50), width: 2),
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -74,7 +74,7 @@ class HeroSection extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                child: const Text('Скачать приложение'),
+                child: const Text('Пробный период'),
               ),
             ],
           ),
