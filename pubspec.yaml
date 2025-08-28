@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.8.1
+  sdk: ">=3.9.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -16,6 +16,7 @@ dependencies:
   syncfusion_flutter_pdfviewer: ^30.2.6
   cupertino_icons: ^1.0.8
   google_fonts: ^6.3.0
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:
@@ -27,18 +28,23 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
   fonts:
-    - family: MaterialIcons
-      fonts:
-        - asset: assets/fonts/MaterialIcons-Regular.otf
     - family: Roboto
       fonts:
         - asset: assets/fonts/Roboto-Regular.ttf
-    - family: Noto Sans
+    - family: NotoSans
       fonts:
         - asset: assets/fonts/NotoSans-Regular.ttf
-    
+        - asset: assets/fonts/NotoSans-Bold.ttf
+          weight: 700
+    - family: NotoColorEmoji
+      fonts:
+        - asset: assets/fonts/NotoColorEmoji.ttf
+
   assets:
+    - assets/fonts/
     - assets/images/
     - assets/maps/
     - assets/maps/map1.pdf
+    

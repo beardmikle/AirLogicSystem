@@ -62,12 +62,12 @@ class AppHeader extends StatelessWidget {
                 ],
               ),
               
-              const SizedBox(width: 32),
+              const SizedBox(width: 10),
               
               // Кнопки
               Row(
                 children: [
-                  TextButton.icon(
+                  TextButton(
                     onPressed: () async {
                       final result = await showDialog<bool>(
                         context: context,
@@ -77,17 +77,21 @@ class AppHeader extends StatelessWidget {
                         Navigator.of(context).pushNamed('/admin');
                       }
                     },
-                    icon: const Icon(
-                      Icons.person,
-                      color: Color(0xFF1976D2),
-                      size: 20,
-                    ),
-                    label: const Text(
-                      'Войти',
-                      style: TextStyle(
-                        color: Color(0xFF1976D2),
-                        fontWeight: FontWeight.w500,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Center(
+                          child: Text("👤", style: TextStyle(fontSize: 14)),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Войти',
+                          style: TextStyle(
+                            color: Color(0xFF1976D2),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -112,7 +116,7 @@ class AppHeader extends StatelessWidget {
           title,
           style: const TextStyle(
             color: Colors.black87,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),

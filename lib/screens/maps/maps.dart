@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 
 class MapData {
   final String id;
   final String name;
-  final String filePath;
+  final String uri;
   final List<DeviceMarker> devices;
 
   MapData({
     required this.id,
     required this.name,
-    required this.filePath,
+    required this.uri,
     this.devices = const [],
   });
 
@@ -23,7 +22,7 @@ class MapData {
     return MapData(
       id: id ?? this.id,
       name: name ?? this.name,
-      filePath: filePath ?? this.filePath,
+      uri: filePath ?? uri,
       devices: devices ?? this.devices,
     );
   }
@@ -336,7 +335,7 @@ class _MapsPageState extends State<MapsPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              _selectedMap!.filePath,
+                              _selectedMap!.uri,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: Colors.grey.shade500,
@@ -448,15 +447,15 @@ class _MapsPageState extends State<MapsPage> {
                 children: [
                   Icon(Icons.picture_as_pdf, size: 32, color: Colors.green.shade700),
                   const SizedBox(height: 8),
-                  Text(
-                    'Карта будет загружена из:',
-                    style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'assets/maps/map1.pdf',
-                    style: TextStyle(color: Colors.green.shade600, fontSize: 12),
-                  ),
+                  // Text(
+                  //   'Карта будет загружена из:',
+                  //   style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.w500),
+                  // ),
+                  // const SizedBox(height: 4),
+                  // Text(
+                  //   'maps/map1.pdf',
+                  //   style: TextStyle(color: Colors.green.shade600, fontSize: 12),
+                  // ),
                 ],
               ),
             ),
@@ -513,7 +512,7 @@ class _MapsPageState extends State<MapsPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _selectedMap!.filePath,
+                    _selectedMap!.uri,
                     style: TextStyle(color: Colors.blue.shade600, fontSize: 12),
                   ),
                 ],
@@ -607,7 +606,7 @@ class _MapsPageState extends State<MapsPage> {
     final newMap = MapData(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: _mapNameController.text.trim(),
-      filePath: 'assets/maps/map1.pdf',
+      uri: 'http://localhost:8000/static/map1.pdf',
     );
 
     setState(() {
@@ -617,7 +616,7 @@ class _MapsPageState extends State<MapsPage> {
 
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Карта "${newMap.name}" добавлена из assets/maps/map1.pdf')),
+      SnackBar(content: Text('Карта "${newMap.name}" добавлена из http://localhost:8000/static/map1.pdf')),
     );
   }
 

@@ -1,0 +1,65 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ga1site",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "ga1site (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "ga1site (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "web",
+            "cwd": "web",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "web (profile mode)",
+            "cwd": "web",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "web (release mode)",
+            "cwd": "web",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "web",
+            "cwd": "build/web",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "web (profile mode)",
+            "cwd": "build/web",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "web (release mode)",
+            "cwd": "build/web",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
