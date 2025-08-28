@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:ga1site/screens/devices/devices.dart';
 import '../models/measurement.dart';
@@ -13,7 +14,7 @@ class AdminScreen extends StatefulWidget {
 
 class _AdminScreenState extends State<AdminScreen> {
   late final ApiService _apiService;
-  Future<DeviceData>? _futureData;
+  Future<DeviceData?>? _futureData; // Fixed type to Future<DeviceData?>?
   String _currentPage = 'devices';
 
   @override
@@ -27,9 +28,17 @@ class _AdminScreenState extends State<AdminScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_getPageTitle()),
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
+        title: Text(
+          _getPageTitle(),
+          style: const TextStyle(
+            fontFamily: 'DM Sans',
+            fontWeight: FontWeight.normal,
+            fontSize: 22,
+
+          ),
+        ),
+        backgroundColor:  Color(0xFFF4F7FE),
+        foregroundColor: Color(0xFF2B3674),
       ),
       drawer: _buildDrawer(),
       body: _buildCurrentPageContent(),
@@ -64,90 +73,87 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _buildDrawer() {
-    return Drawer(
-      child: Column(
-        children: [
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.blue.shade700,
-            ),
-            child: const Row(
-              children: [
-                Icon(
-                  Icons.admin_panel_settings,
-                  color: Colors.white,
-                  size: 40,
-                ),
-                SizedBox(width: 16),
-                Text(
-                  'Панель\nАдминистратора',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+    return SizedBox(
+      width: 240,
+      child: Drawer(
+        child: Column(
+          children: [
+          
+SizedBox(
+  height: 56, // например 56–64
+  child: DrawerHeader(
+    margin: EdgeInsets.zero,
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    decoration: const BoxDecoration(color: Color(0xFFF4F7FE)),
+    child: const Row(
+      children: [
+        Icon(Icons.admin_panel_settings, color: Color(0xFF2B3674), size: 22),
+        SizedBox(width: 10),
+        Text('Администратор', style: TextStyle(color: Color(0xFF2B3674), fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+      ],
+    ),
+  ),
+)
+,
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  _buildDrawerItem(
+                    icon: Icons.monitor,
+                    title: 'Мониторинг',
+                    page: 'monitoring',
                   ),
-                ),
-              ],
+                  _buildDrawerItem(
+                    icon: Icons.notifications,
+                    title: 'Журнал событий',
+                    page: 'events',
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.mail,
+                    title: 'Текстовые сообщения',
+                    page: 'messages',
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.person,
+                    title: 'Сотрудники',
+                    page: 'employees',
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.devices,
+                    title: 'Устройства',
+                    page: 'devices',
+                  ),
+                  _buildExpandableDrawerItem(
+                    icon: Icons.analytics,
+                    title: 'Аналитика',
+                    page: 'analytics',
+                  ),
+                  _buildExpandableDrawerItem(
+                    icon: Icons.map,
+                    title: 'Настройка карт',
+                    page: 'maps',
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.group,
+                    title: 'Пользователи',
+                    page: 'users',
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.settings,
+                    title: 'Параметры',
+                    page: 'settings',
+                  ),
+                  _buildExpandableDrawerItem(
+                    icon: Icons.info,
+                    title: 'Информация',
+                    page: 'info',
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _buildDrawerItem(
-                  icon: Icons.monitor,
-                  title: 'Мониторинг',
-                  page: 'monitoring',
-                ),
-                _buildDrawerItem(
-                  icon: Icons.notifications,
-                  title: 'Журнал событий',
-                  page: 'events',
-                ),
-                _buildDrawerItem(
-                  icon: Icons.mail,
-                  title: 'Текстовые сообщения',
-                  page: 'messages',
-                ),
-                _buildDrawerItem(
-                  icon: Icons.person,
-                  title: 'Сотрудники',
-                  page: 'employees',
-                ),
-                _buildDrawerItem(
-                  icon: Icons.devices,
-                  title: 'Устройства',
-                  page: 'devices',
-                ),
-                _buildExpandableDrawerItem(
-                  icon: Icons.analytics,
-                  title: 'Аналитика',
-                  page: 'analytics',
-                ),
-                _buildExpandableDrawerItem(
-                  icon: Icons.map,
-                  title: 'Настройка карт',
-                  page: 'maps',
-                ),
-                _buildDrawerItem(
-                  icon: Icons.group,
-                  title: 'Пользователи',
-                  page: 'users',
-                ),
-                _buildDrawerItem(
-                  icon: Icons.settings,
-                  title: 'Параметры',
-                  page: 'settings',
-                ),
-                _buildExpandableDrawerItem(
-                  icon: Icons.info,
-                  title: 'Информация',
-                  page: 'info',
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -161,13 +167,15 @@ class _AdminScreenState extends State<AdminScreen> {
     return ListTile(
       leading: Icon(
         icon,
+        size: 16,
         color: isSelected ? Colors.blue.shade700 : Colors.grey.shade600,
       ),
       title: Text(
         title,
         style: TextStyle(
           color: isSelected ? Colors.blue.shade700 : Colors.black87,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontFamily: 'DM Sans',
+          fontWeight: FontWeight.w500,
         ),
       ),
       selected: isSelected,
@@ -175,6 +183,9 @@ class _AdminScreenState extends State<AdminScreen> {
       onTap: () {
         setState(() {
           _currentPage = page;
+          if (page == 'monitoring') {
+            _futureData = _apiService.fetchDeviceData(); // Refresh data
+          }
         });
         Navigator.pop(context);
       },
@@ -190,13 +201,15 @@ class _AdminScreenState extends State<AdminScreen> {
     return ListTile(
       leading: Icon(
         icon,
+        size: 16,
         color: isSelected ? Colors.blue.shade700 : Colors.grey.shade600,
       ),
       title: Text(
         title,
         style: TextStyle(
           color: isSelected ? Colors.blue.shade700 : Colors.black87,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontFamily: 'DM Sans',
+          fontWeight: FontWeight.w500,
         ),
       ),
       trailing: Icon(
@@ -208,6 +221,9 @@ class _AdminScreenState extends State<AdminScreen> {
       onTap: () {
         setState(() {
           _currentPage = page;
+          if (page == 'monitoring') {
+            _futureData = _apiService.fetchDeviceData(); // Refresh data
+          }
         });
         Navigator.pop(context);
       },
@@ -247,18 +263,79 @@ class _AdminScreenState extends State<AdminScreen> {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
-          child: FutureBuilder<DeviceData>(
+          child: FutureBuilder<DeviceData?>(
             future: _futureData,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const CircularProgressIndicator();
               }
               if (snapshot.hasError) {
-                return Text('Ошибка загрузки: ${snapshot.error}');
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Ошибка загрузки: ${snapshot.error}',
+                      style: const TextStyle(
+                        fontFamily: 'DM Sans',
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _futureData = _apiService.fetchDeviceData();
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text(
+                        'Повторить',
+                        style: TextStyle(
+                          fontFamily: 'DM Sans',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
               }
               final data = snapshot.data;
               if (data == null) {
-                return const Text('Нет данных');
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Нет данных',
+                      style: TextStyle(
+                        fontFamily: 'DM Sans',
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _futureData = _apiService.fetchDeviceData();
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text(
+                        'Повторить',
+                        style: TextStyle(
+                          fontFamily: 'DM Sans',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
               }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -270,10 +347,22 @@ class _AdminScreenState extends State<AdminScreen> {
                         alignment: WrapAlignment.spaceBetween,
                         runSpacing: 8,
                         children: [
-                          Text('Device ID: ${data.deviceId}',
-                              style: Theme.of(context).textTheme.titleMedium),
-                          Text('Timestamp: ${data.timestamp}',
-                              style: Theme.of(context).textTheme.titleMedium),
+                          Text(
+                            'Device ID: ${data.deviceId}',
+                            style: const TextStyle(
+                              fontFamily: 'DM Sans',
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            'Timestamp: ${data.timestamp}',
+                            style: const TextStyle(
+                              fontFamily: 'DM Sans',
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -283,14 +372,36 @@ class _AdminScreenState extends State<AdminScreen> {
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: DataTable(
-                        headingRowColor: WidgetStateProperty.all(
-                            Colors.grey.shade200),
-                        border: TableBorder.all(
-                            width: 1, color: Colors.grey.shade300),
+                        headingRowColor: WidgetStateProperty.all(Colors.grey.shade200),
+                        border: TableBorder.all(width: 1, color: Colors.grey.shade300),
                         columns: const [
-                          DataColumn(label: Text('Параметр')),
-                          DataColumn(label: Text('Значение')),
-                          DataColumn(label: Text('Единицы')),
+                          DataColumn(
+                            label: Text(
+                              'Параметр',
+                              style: TextStyle(
+                                fontFamily: 'DM Sans',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'Значение',
+                              style: TextStyle(
+                                fontFamily: 'DM Sans',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Text(
+                              'Единицы',
+                              style: TextStyle(
+                                fontFamily: 'DM Sans',
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
                         ],
                         rows: [
                           _row('CO', data.measurements.co),
@@ -319,12 +430,20 @@ class _AdminScreenState extends State<AdminScreen> {
           SizedBox(height: 16),
           Text(
             'Журнал событий',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 24,
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             'Здесь будет отображаться история событий системы',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Colors.grey,
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -340,12 +459,20 @@ class _AdminScreenState extends State<AdminScreen> {
           SizedBox(height: 16),
           Text(
             'Текстовые сообщения',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 24,
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             'Управление текстовыми уведомлениями',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Colors.grey,
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -361,12 +488,20 @@ class _AdminScreenState extends State<AdminScreen> {
           SizedBox(height: 16),
           Text(
             'Сотрудники',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 24,
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             'Управление персоналом и правами доступа',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Colors.grey,
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -374,7 +509,7 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _buildDevicesPage() {
- return const DevicesPage();
+    return const DevicesPage();
   }
 
   Widget _buildAnalyticsPage() {
@@ -386,12 +521,20 @@ class _AdminScreenState extends State<AdminScreen> {
           SizedBox(height: 16),
           Text(
             'Аналитика',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 24,
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             'Статистика и аналитические отчеты',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Colors.grey,
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -411,12 +554,20 @@ class _AdminScreenState extends State<AdminScreen> {
           SizedBox(height: 16),
           Text(
             'Пользователи',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 24,
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             'Управление пользователями системы',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Colors.grey,
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -440,28 +591,68 @@ class _AdminScreenState extends State<AdminScreen> {
                     children: [
                       Text(
                         'Параметры системы',
-                        style: Theme.of(context).textTheme.headlineSmall,
+                        style: TextStyle(
+                          fontFamily: 'DM Sans',
+                          fontWeight: FontWeight.w500,
+                          fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      const ListTile(
-                        leading: Icon(Icons.wifi),
-                        title: Text('Сетевые настройки'),
-                        subtitle: Text('Конфигурация подключения'),
-                        trailing: Icon(Icons.arrow_forward_ios),
+                      ListTile(
+                        leading: const Icon(Icons.wifi),
+                        title: const Text(
+                          'Сетевые настройки',
+                          style: TextStyle(
+                            fontFamily: 'DM Sans',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'Конфигурация подключения',
+                          style: TextStyle(
+                            fontFamily: 'DM Sans',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios),
                       ),
                       const Divider(),
-                      const ListTile(
-                        leading: Icon(Icons.security),
-                        title: Text('Безопасность'),
-                        subtitle: Text('Настройки доступа и аутентификации'),
-                        trailing: Icon(Icons.arrow_forward_ios),
+                      ListTile(
+                        leading: const Icon(Icons.security),
+                        title: const Text(
+                          'Безопасность',
+                          style: TextStyle(
+                            fontFamily: 'DM Sans',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'Настройки доступа и аутентификации',
+                          style: TextStyle(
+                            fontFamily: 'DM Sans',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios),
                       ),
                       const Divider(),
-                      const ListTile(
-                        leading: Icon(Icons.backup),
-                        title: Text('Резервное копирование'),
-                        subtitle: Text('Настройка автоматических бэкапов'),
-                        trailing: Icon(Icons.arrow_forward_ios),
+                      ListTile(
+                        leading: const Icon(Icons.backup),
+                        title: const Text(
+                          'Резервное копирование',
+                          style: TextStyle(
+                            fontFamily: 'DM Sans',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'Настройка автоматических бэкапов',
+                          style: TextStyle(
+                            fontFamily: 'DM Sans',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios),
                       ),
                     ],
                   ),
@@ -491,7 +682,11 @@ class _AdminScreenState extends State<AdminScreen> {
                     children: [
                       Text(
                         'Информация о системе',
-                        style: Theme.of(context).textTheme.headlineSmall,
+                        style: TextStyle(
+                          fontFamily: 'DM Sans',
+                          fontWeight: FontWeight.w500,
+                          fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       _buildInfoRow('Версия ПО:', '2.1.3'),
@@ -511,23 +706,45 @@ class _AdminScreenState extends State<AdminScreen> {
                     children: [
                       Text(
                         'Документация',
-                        style: Theme.of(context).textTheme.titleLarge,
+                        style: TextStyle(
+                          fontFamily: 'DM Sans',
+                          fontWeight: FontWeight.w500,
+                          fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      const ListTile(
-                        leading: Icon(Icons.book),
-                        title: Text('Руководство администратора'),
-                        trailing: Icon(Icons.arrow_forward_ios),
+                      ListTile(
+                        leading: const Icon(Icons.book),
+                        title: const Text(
+                          'Руководство администратора',
+                          style: TextStyle(
+                            fontFamily: 'DM Sans',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios),
                       ),
-                      const ListTile(
-                        leading: Icon(Icons.help),
-                        title: Text('FAQ'),
-                        trailing: Icon(Icons.arrow_forward_ios),
+                      ListTile(
+                        leading: const Icon(Icons.help),
+                        title: const Text(
+                          'FAQ',
+                          style: TextStyle(
+                            fontFamily: 'DM Sans',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios),
                       ),
-                      const ListTile(
-                        leading: Icon(Icons.bug_report),
-                        title: Text('Сообщить о проблеме'),
-                        trailing: Icon(Icons.arrow_forward_ios),
+                      ListTile(
+                        leading: const Icon(Icons.bug_report),
+                        title: const Text(
+                          'Сообщить о проблеме',
+                          style: TextStyle(
+                            fontFamily: 'DM Sans',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios),
                       ),
                     ],
                   ),
@@ -548,46 +765,52 @@ class _AdminScreenState extends State<AdminScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          Text(value),
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'DM Sans',
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // Widget _buildCurrentPageContent() {
-  //   switch (_currentPage) {
-  //     case 'monitoring':
-  //       return _buildMonitoringPage();
-  //     case 'events':
-  //       return _buildEventsPage();
-  //     case 'messages':
-  //       return _buildMessagesPage();
-  //     case 'employees':
-  //       return _buildEmployeesPage();
-  //     case 'devices':
-  //       return _buildDevicesPage();
-  //     case 'analytics':
-  //       return _buildAnalyticsPage();
-  //     case 'maps':
-  //       return _buildMapsPage();
-  //     case 'users':
-  //       return _buildUsersPage();
-  //     case 'settings':
-  //       return _buildSettingsPage();
-  //     case 'info':
-  //       return _buildInfoPage();
-  //     default:
-  //       return _buildMonitoringPage();
-  //   }
-  // }
-
   DataRow _row(String name, UnitValue v) {
     return DataRow(cells: [
-      DataCell(Text(name)),
-      DataCell(Text(v.value.toString())),
-      DataCell(Text(v.unit)),
+      DataCell(
+        Text(
+          name,
+          style: const TextStyle(
+            fontFamily: 'DM Sans',
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      DataCell(
+        Text(
+          v.value.toString(),
+          style: const TextStyle(
+            fontFamily: 'DM Sans',
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      DataCell(
+        Text(
+          v.unit,
+          style: const TextStyle(
+            fontFamily: 'DM Sans',
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
     ]);
   }
 }

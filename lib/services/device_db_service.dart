@@ -10,6 +10,8 @@ class StoredDevice {
   final DateTime? commissioningDate;
   final bool isOn;
   final int emergencyStatus;
+  final double? pinX; // relative to image center (pixels)
+  final double? pinY; // relative to image center (pixels)
 
   StoredDevice({
     required this.id,
@@ -21,6 +23,8 @@ class StoredDevice {
     required this.commissioningDate,
     required this.isOn,
     required this.emergencyStatus,
+    this.pinX,
+    this.pinY,
   });
 
   Map<String, dynamic> toMap() => {
@@ -33,6 +37,8 @@ class StoredDevice {
         'commissioningDate': commissioningDate?.toIso8601String(),
         'isOn': isOn,
         'emergencyStatus': emergencyStatus,
+        'pinX': pinX,
+        'pinY': pinY,
       };
 
   static StoredDevice fromMap(Map map) => StoredDevice(
@@ -49,6 +55,8 @@ class StoredDevice {
             : null,
         isOn: (map['isOn'] as bool?) ?? false,
         emergencyStatus: (map['emergencyStatus'] as int?) ?? 0,
+        pinX: (map['pinX'] as num?)?.toDouble(),
+        pinY: (map['pinY'] as num?)?.toDouble(),
       );
 }
 

@@ -1,6 +1,10 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../../services/device_db_service.dart';
+import '../../services/session_service.dart';
+
+// Единый фоновый цвет страницы и подложек
+const kBg = Color(0xFFF4F7FE);
 
 class Device {
   final String id;
@@ -12,6 +16,8 @@ class Device {
   final DateTime? commissioningDate;
   final bool isOn;
   final int emergencyStatus;
+  final double? pinX; // relative to image center (pixels)
+  final double? pinY; // relative to image center (pixels)
 
   Device({
     required this.id,
@@ -23,6 +29,8 @@ class Device {
     this.commissioningDate,
     this.isOn = false,
     this.emergencyStatus = 0,
+    this.pinX,
+    this.pinY,
   });
 
   Device copyWith({
@@ -35,6 +43,8 @@ class Device {
     DateTime? commissioningDate,
     bool? isOn,
     int? emergencyStatus,
+    double? pinX,
+    double? pinY,
   }) {
     return Device(
       id: id ?? this.id,
@@ -46,6 +56,8 @@ class Device {
       commissioningDate: commissioningDate ?? this.commissioningDate,
       isOn: isOn ?? this.isOn,
       emergencyStatus: emergencyStatus ?? this.emergencyStatus,
+      pinX: pinX ?? this.pinX,
+      pinY: pinY ?? this.pinY,
     );
   }
 }
@@ -74,27 +86,20 @@ class _DevicesPageState extends State<DevicesPage> {
   bool _sortAscending = true;
 
   // 60 / 40 по умолчанию
-  double _splitRatio = 0.6;
+  double _splitRatio = 0.7;
 
-  late final String _baseUrl; // http://<host>:8000
   final String _imagePath = 'assets/maps/map1.png';
 
   // ==== Карта: масштаб и панорамирование
   final TransformationController _mapController = TransformationController();
   final double _minScale = 0.5;
   final double _maxScale = 3.0;
-  String _imageStatus = 'Инициализация...';
+  bool _placingPin = false;
 
   @override
   void initState() {
     super.initState();
-    _baseUrl = _detectBaseUrl();
     _loadDevices();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        _imageStatus = 'Карта загружена';
-      });
-    });
   }
 
   @override
@@ -107,44 +112,26 @@ class _DevicesPageState extends State<DevicesPage> {
     super.dispose();
   }
 
-  String _detectBaseUrl() {
-    if (kIsWeb) {
-      final u = Uri.base; // http://localhost:<any port>/
-      return Uri(scheme: 'http', host: u.host, port: 8000).toString();
-    } else {
-      // Replace with your LAN-IP for real device
-      return 'http://192.168.31.187:8000';
-      // Android emulator: return 'http://10.0.2.2:8000';
-    }
-  }
 
   Future<void> _loadDevices() async {
-    // Demo data
+    final username = SessionService.getCurrentUsername() ?? 'guest';
+    final stored = DeviceDbService.list(username);
     setState(() {
       _devices
         ..clear()
-        ..addAll([
-          Device(
-            id: '1',
-            name: 'Датчик CO',
-            brand: 'Acme',
-            type: 'Gas',
-            serialNumber: 'A123',
-            isOn: true,
-            emergencyStatus: 0,
-            verificationDate: DateTime.now(),
-          ),
-          Device(
-            id: '2',
-            name: 'Датчик NO2',
-            brand: 'Contoso',
-            type: 'Gas',
-            serialNumber: 'B456',
-            isOn: false,
-            emergencyStatus: 1,
-            commissioningDate: DateTime.now(),
-          ),
-        ]);
+        ..addAll(stored.map((e) => Device(
+          id: e.id,
+          name: e.name,
+          brand: e.brand,
+          type: e.type,
+          serialNumber: e.serialNumber,
+          verificationDate: e.verificationDate,
+          commissioningDate: e.commissioningDate,
+          isOn: e.isOn,
+          emergencyStatus: e.emergencyStatus,
+          pinX: e.pinX,
+          pinY: e.pinY,
+        )));
     });
   }
 
@@ -160,22 +147,20 @@ class _DevicesPageState extends State<DevicesPage> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          width: 24,
-          height: 24,
+          width: 14,
+          height: 14,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isActive ? Colors.green : Colors.red,
+            color: isActive ? Color(0xfff01b574) : Colors.red,
             boxShadow: [
               BoxShadow(
-                color: (isActive ? Colors.green : Colors.red).withOpacity(0.3),
+                color: (isActive ? Color(0xfff01b574) : Colors.red).withOpacity(0.3),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: isActive 
-            ? const Icon(Icons.check, size: 16, color: Colors.white)
-            : const Icon(Icons.close, size: 16, color: Colors.white),
+          child: const Icon(Icons.circle, size: 16, color: Colors.white),
         ),
       ),
     );
@@ -184,10 +169,11 @@ class _DevicesPageState extends State<DevicesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kBg, // фон всей страницы
       body: Column(
         children: [
           _buildControlPanel(),
-          const Divider(height: 1),
+          Divider(height: 1, color: Colors.black.withOpacity(0.06)),
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -214,9 +200,9 @@ class _DevicesPageState extends State<DevicesPage> {
                         cursor: SystemMouseCursors.resizeLeftRight,
                         child: Container(
                           width: 8,
-                          color: Colors.grey.shade300,
+                          color: Colors.black.withOpacity(0.06),
                           child: Center(
-                            child: Container(width: 2, color: Colors.grey.shade600),
+                            child: Container(width: 2, color: Colors.black.withOpacity(0.15)),
                           ),
                         ),
                       ),
@@ -241,23 +227,27 @@ class _DevicesPageState extends State<DevicesPage> {
   Widget _buildControlPanel() {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.grey.shade50,
+      color: kBg, // подложка панели
       child: Row(
         children: [
           ElevatedButton(
             onPressed: _showAddDeviceDialog,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: Color(0xfff01b574),  
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('+', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('+', style: TextStyle(fontSize: 10, 
+                fontFamily: 'DM Sans',
+                fontWeight: FontWeight.bold)),
                 SizedBox(width: 8),
-                Text('Добавить', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text('Добавить', style: TextStyle(fontSize: 10, 
+                fontFamily: 'DM Sans',
+                fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -265,13 +255,13 @@ class _DevicesPageState extends State<DevicesPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+              color: Color(0xFFF4F7FE), // чип статистики — контрастная карточка F4F7FE Color(0xFF4318FF)
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue.shade200),
+              border: Border.all(color: Color(0xFF4318FF).withOpacity(0.1)),
             ),
             child: Text(
               'Всего устройств: ${_devices.length}',
-              style: TextStyle(fontSize: 16, color: Colors.blue.shade800, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 10, color: Color(0xFF4318FF), fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -281,18 +271,21 @@ class _DevicesPageState extends State<DevicesPage> {
 
   // ====== Empty State
   Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('📱', style: TextStyle(fontSize: 80)),
-          SizedBox(height: 20),
-          Text('Нет добавленных устройств',
-              style: TextStyle(fontSize: 18, color: Colors.red, fontWeight: FontWeight.w500)),
-          SizedBox(height: 12),
-          Text('Нажмите "Добавить" для создания нового устройства',
-              style: TextStyle(color: Colors.red, fontSize: 14)),
-        ],
+    return Container(
+      color: kBg,
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('📱', style: TextStyle(fontSize: 80)),
+            SizedBox(height: 20),
+            Text('Нет добавленных устройств',
+                style: TextStyle(fontSize: 18, color: Colors.red, fontWeight: FontWeight.w500)),
+            SizedBox(height: 12),
+            Text('Нажмите "Добавить" для создания нового устройства',
+                style: TextStyle(color: Colors.red, fontSize: 14)),
+          ],
+        ),
       ),
     );
   }
@@ -303,6 +296,7 @@ class _DevicesPageState extends State<DevicesPage> {
     final columnWidth = constraints.maxWidth / 9;
 
     return Container(
+      color: kBg, // подложка секции с таблицей
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
@@ -315,73 +309,79 @@ class _DevicesPageState extends State<DevicesPage> {
                   sortColumnIndex: _getSortColumnIndex(),
                   sortAscending: _sortAscending,
                   showCheckboxColumn: false,
-                  headingRowColor: WidgetStateProperty.all(Colors.blue.shade50),
+                  headingRowColor: WidgetStateProperty.all(Color(0xFFE9EDF7)),  
                   headingRowHeight: 56,
                   dataRowMinHeight: 56,
                   dataRowMaxHeight: 72,
-                  columnSpacing: 16,
-                  horizontalMargin: 16,
+                  columnSpacing: 15,
+                  horizontalMargin: 20,
                   columns: [
                     DataColumn(
                       label: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: columnWidth),
-                        child: const Text('Название', style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        child: const Text('Название', style: TextStyle(fontWeight: FontWeight.normal, color: Color(0xFFA3AED0)), overflow: TextOverflow.ellipsis),
                       ),
                       onSort: (i, a) => _sort('name', a),
                     ),
                     DataColumn(
                       label: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: columnWidth),
-                        child: const Text('Марка', style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        child: const Text('Марка', style: TextStyle(fontWeight: FontWeight.normal, color: Color(0xFFA3AED0)), overflow: TextOverflow.ellipsis),
                       ),
                       onSort: (i, a) => _sort('brand', a),
                     ),
                     DataColumn(
                       label: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: columnWidth),
-                        child: const Text('Тип', style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        child: const Text('Тип', style: TextStyle(fontWeight: FontWeight.normal, color: Color(0xFFA3AED0)), overflow: TextOverflow.ellipsis),
                       ),
                       onSort: (i, a) => _sort('type', a),
                     ),
                     DataColumn(
                       label: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: columnWidth),
-                        child: const Text('Серийный номер', style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        child: const Text('Серийный номер', style: TextStyle(fontWeight: FontWeight.normal, color: Color(0xFFA3AED0)), overflow: TextOverflow.ellipsis),
                       ),
                       onSort: (i, a) => _sort('serialNumber', a),
                     ),
                     DataColumn(
                       label: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: columnWidth),
-                        child: const Text('Статус', style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        child: const Text('Коорд. булавки', style: TextStyle(fontWeight: FontWeight.normal, color: Color(0xFFA3AED0)), overflow: TextOverflow.ellipsis),
+                      ),
+                    ),
+                    DataColumn(
+                      label: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: columnWidth),
+                        child: const Text('Статус', style: TextStyle(fontWeight: FontWeight.normal, color: Color(0xFFA3AED0)), overflow: TextOverflow.ellipsis),
                       ),
                       onSort: (i, a) => _sort('isOn', a),
                     ),
                     DataColumn(
                       label: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: columnWidth),
-                        child: const Text('Авария', style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        child: const Text('Авария', style: TextStyle(fontWeight: FontWeight.normal, color: Color(0xFFA3AED0)), overflow: TextOverflow.ellipsis),
                       ),
                       onSort: (i, a) => _sort('emergencyStatus', a),
                     ),
                     DataColumn(
                       label: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: columnWidth),
-                        child: const Text('Поверка', style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        child: const Text('Поверка', style: TextStyle(fontWeight: FontWeight.normal, color: Color(0xFFA3AED0)), overflow: TextOverflow.ellipsis),
                       ),
                       onSort: (i, a) => _sort('verificationDate', a),
                     ),
                     DataColumn(
                       label: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: columnWidth),
-                        child: const Text('Ввод', style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        child: const Text('Ввод', style: TextStyle(fontWeight: FontWeight.normal, color: Color(0xFFA3AED0)), overflow: TextOverflow.ellipsis),
                       ),
                       onSort: (i, a) => _sort('commissioningDate', a),
                     ),
                     DataColumn(
                       label: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: columnWidth),
-                        child: const Text('Действия', style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        child: const Text('Действия', style: TextStyle(fontWeight: FontWeight.normal, color: Color(0xFFA3AED0)), overflow: TextOverflow.ellipsis),
                       ),
                     ),
                   ],
@@ -394,10 +394,19 @@ class _DevicesPageState extends State<DevicesPage> {
                       ),
                       onSelectChanged: (val) => setState(() => _selectedDeviceId = val == true ? d.id : null),
                       cells: [
-                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.name, overflow: TextOverflow.ellipsis))),
-                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.brand, overflow: TextOverflow.ellipsis))),
-                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.type, overflow: TextOverflow.ellipsis))),
-                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.serialNumber, overflow: TextOverflow.ellipsis))),
+                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.name, style: const TextStyle( color: Color(0xFF2B3674)),overflow: TextOverflow.ellipsis))),
+                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.brand, style: const TextStyle( color: Color(0xFF2B3674)),overflow: TextOverflow.ellipsis))),
+                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.type, style: const TextStyle( color: Color(0xFF2B3674)),overflow: TextOverflow.ellipsis))),
+                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.serialNumber, style: const TextStyle( color: Color(0xFF2B3674)),overflow: TextOverflow.ellipsis))),
+                        DataCell(ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: columnWidth),
+                          child: Text(
+                            (d.pinX != null && d.pinY != null)
+                                ? '(${d.pinX!.toStringAsFixed(0)}, ${d.pinY!.toStringAsFixed(0)})'
+                                : '—',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )),
                         DataCell(
                           Center(
                             child: _buildCircularIndicator(
@@ -410,14 +419,14 @@ class _DevicesPageState extends State<DevicesPage> {
                         DataCell(
                           Center(
                             child: _buildCircularIndicator(
-                              isActive: d.emergencyStatus == 0, // зеленый для нормы (0), красный для аварии (1)
+                              isActive: d.emergencyStatus == 0, // зелёный для нормы (0), красный для аварии (1)
                               onTap: () => _toggleEmergency(d),
                               tooltip: d.emergencyStatus == 0 ? 'Норма (нажмите для аварии)' : 'Авария (нажмите для нормы)',
                             ),
                           ),
                         ),
-                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.verificationDate?.toLocal().toString().split(' ').first ?? 'Не указана', overflow: TextOverflow.ellipsis))),
-                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.commissioningDate?.toLocal().toString().split(' ').first ?? 'Не указана', overflow: TextOverflow.ellipsis))),
+                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.verificationDate?.toLocal().toString().split(' ').first ?? 'Не указана', style: const TextStyle( color: Color(0xFF2B3674)),overflow: TextOverflow.ellipsis))),
+                        DataCell(ConstrainedBox(constraints: BoxConstraints(maxWidth: columnWidth), child: Text(d.commissioningDate?.toLocal().toString().split(' ').first ?? 'Не указана',style: const TextStyle( color: Color(0xFF2B3674)), overflow: TextOverflow.ellipsis))),
                         DataCell(Row(
                           children: [
                             IconButton(tooltip: 'Редактировать', onPressed: () => _showEditDeviceDialog(d), icon: const Text('✏️')),
@@ -439,13 +448,13 @@ class _DevicesPageState extends State<DevicesPage> {
   // ====== Панель карты (панорамирование + зум)
   Widget _buildImagePane() {
     return Container(
-      color: Colors.grey.shade100,
+      color: kBg, // подложка правой панели
       child: Column(
         children: [
           // Header (кнопки управления)
           Container(
             padding: const EdgeInsets.all(12),
-            color: Colors.grey.shade200,
+            color: kBg, // подложка хедера карты
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -454,8 +463,9 @@ class _DevicesPageState extends State<DevicesPage> {
                 _iconBtn('🔍-', () => _zoom(1 / 1.25), 'Уменьшить'),
                 const SizedBox(width: 8),
                 _iconBtn('📏', _resetView, '1:1'),
+                const SizedBox(width: 8),
+                _iconBtn(_placingPin ? '📍✓' : '📍', _togglePlacePinMode, _placingPin ? 'Режим установки булавки (вкл.)' : 'Установить булавку'),
                 const SizedBox(width: 16),
-                // Кнопки панорамирования (можно убрать, жестами уже можно таскать)
                 _iconBtn('⬅️', () => _pan(const Offset(80, 0)), 'Сместить влево'),
                 const SizedBox(width: 4),
                 _iconBtn('➡️', () => _pan(const Offset(-80, 0)), 'Сместить вправо'),
@@ -470,19 +480,19 @@ class _DevicesPageState extends State<DevicesPage> {
           // Status
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            color: Colors.blue.shade50,
-            child: Row(
-              children: [
-                const Text('Статус: ', style: TextStyle(fontWeight: FontWeight.w500)),
-                Expanded(
-                  child: Text(
-                    _imageStatus,
-                    style: TextStyle(color: Colors.blue.shade800, fontSize: 12),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
+            color: kBg, // подложка статуса
+            // child: Row(
+            //   children: [
+            //     const Text('Статус: ', style: TextStyle(fontWeight: FontWeight.w500)),
+            //     Expanded(
+            //       child: Text(
+            //         _imageStatus,
+            //         style: const TextStyle(color: Colors.black87, fontSize: 12),
+            //         overflow: TextOverflow.ellipsis,
+            //       ),
+            //     ),
+            //   ],
+            // ),
           ),
 
           // Viewer
@@ -491,7 +501,7 @@ class _DevicesPageState extends State<DevicesPage> {
               padding: const EdgeInsets.all(8.0),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.white, // карточка-вьювер — оставил белой для контраста
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6, offset: const Offset(0, 2))],
                 ),
@@ -503,27 +513,54 @@ class _DevicesPageState extends State<DevicesPage> {
                         transformationController: _mapController,
                         minScale: _minScale,
                         maxScale: _maxScale,
-                        // важно: позволяeт панорамировать даже на 1.0
                         boundaryMargin: const EdgeInsets.all(120),
-                        // оставляем по умолчанию (true) — дочерний виджет ограничен рамкой
-                        // этого достаточно вместе с boundaryMargin для панорамирования
                         panEnabled: true,
                         scaleEnabled: true,
-                        child: Image.asset(
-                          _imagePath,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted) {
+                        child: LayoutBuilder(
+                          builder: (context, inner) {
+                            final width = inner.maxWidth;
+                            final height = inner.maxHeight;
+                            return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTapDown: (details) async {
+                                if (!_placingPin) return;
+                                final local = details.localPosition;
+                                final relX = local.dx - width / 2;
+                                final relY = local.dy - height / 2;
+                                final selectedId = await _promptSelectDeviceId();
+                                if (selectedId == null) return;
+                                await _savePinForDevice(selectedId, relX, relY);
                                 setState(() {
-                                  _imageStatus = 'Ошибка загрузки изображения: $error';
+                                  final idx = _devices.indexWhere((d) => d.id == selectedId);
+                                  if (idx != -1) {
+                                    _devices[idx] = _devices[idx].copyWith(pinX: relX, pinY: relY);
+                                  }
+                                  _placingPin = false;
                                 });
-                              }
-                            });
-                            return Center(
-                              child: Text(
-                                'Ошибка загрузки изображения',
-                                style: TextStyle(color: Colors.red.shade800),
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Булавка установлена и сохранена')),
+                                  );
+                                }
+                              },
+                              child: Stack(
+                                children: [
+                                  Image.asset(
+                                    _imagePath,
+                                    fit: BoxFit.cover,
+                                    width: width,
+                                    height: height,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: Text(
+                                          'Ошибка загрузки изображения',
+                                          style: TextStyle(color: Colors.red.shade800),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  ..._buildPins(width, height),
+                                ],
                               ),
                             );
                           },
@@ -538,7 +575,8 @@ class _DevicesPageState extends State<DevicesPage> {
 
           // Footer path (debug)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+            color: kBg, // подложка футера карты
             child: SelectableText(
               _imagePath,
               style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
@@ -597,15 +635,123 @@ class _DevicesPageState extends State<DevicesPage> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+              color: Colors.white, // кнопка как маленькая карточка
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Colors.blue.shade200),
+              border: Border.all(color: Colors.black.withOpacity(0.06)),
             ),
             child: Text(text, style: const TextStyle(fontSize: 14)),
           ),
         ),
       ),
     );
+  }
+
+  void _togglePlacePinMode() {
+    setState(() {
+      _placingPin = !_placingPin;
+    });
+    if (_placingPin && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Нажмите на карту, чтобы установить булавку')),
+      );
+    }
+  }
+
+  List<Widget> _buildPins(double width, double height) {
+    final centerX = width / 2;
+    final centerY = height / 2;
+    return _devices.where((d) => d.pinX != null && d.pinY != null).map((d) {
+      final dx = centerX + (d.pinX ?? 0);
+      final dy = centerY + (d.pinY ?? 0);
+      return Positioned(
+        left: dx - 8,
+        top: dy - 24,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade700,
+                borderRadius: BorderRadius.circular(4),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 3)],
+              ),
+              child: Text(
+                d.name,
+                style: const TextStyle(color: Colors.white, fontSize: 10),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Icon(Icons.location_on, color: Colors.red, size: 20),
+          ],
+        ),
+      );
+    }).toList();
+  }
+
+  Future<String?> _promptSelectDeviceId() async {
+    final username = SessionService.getCurrentUsername() ?? 'guest';
+    final items = DeviceDbService.list(username);
+    if (items.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('В БД нет устройств для привязки')),
+        );
+      }
+      return null;
+    }
+    String? selected = items.first.id;
+    return showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Выберите устройство для булавки'),
+          content: StatefulBuilder(
+            builder: (context, setS) {
+              return DropdownButton<String>(
+                isExpanded: true,
+                value: selected,
+                items: [
+                  for (final d in items)
+                    DropdownMenuItem(
+                      value: d.id,
+                      child: Text(d.name),
+                    ),
+                ],
+                onChanged: (v) => setS(() => selected = v),
+              );
+            },
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Отмена')),
+            ElevatedButton(onPressed: () => Navigator.pop(context, selected), child: const Text('Привязать')),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _savePinForDevice(String deviceId, double x, double y) async {
+    final username = SessionService.getCurrentUsername() ?? 'guest';
+    final list = DeviceDbService.list(username);
+    final idx = list.indexWhere((e) => e.id == deviceId);
+    if (idx == -1) return;
+    final orig = list[idx];
+    final updated = StoredDevice(
+      id: orig.id,
+      name: orig.name,
+      brand: orig.brand,
+      type: orig.type,
+      serialNumber: orig.serialNumber,
+      verificationDate: orig.verificationDate,
+      commissioningDate: orig.commissioningDate,
+      isOn: orig.isOn,
+      emergencyStatus: orig.emergencyStatus,
+      pinX: x,
+      pinY: y,
+    );
+    await DeviceDbService.update(username, updated);
+    await _loadDevices();
   }
 
   // ====== CRUD Dialogs
@@ -707,11 +853,10 @@ class _DevicesPageState extends State<DevicesPage> {
         if (picked != null) onChanged(picked);
       },
       child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          suffixIcon: Container(padding: const EdgeInsets.all(8), child: const Text('📅', style: TextStyle(fontSize: 16))),
-        ),
+        decoration: const InputDecoration(
+          labelText: null, // чтобы не конфликтовало с кастомным labelText ниже (оставьте как было при необходимости)
+          border: OutlineInputBorder(),
+        ).copyWith(labelText: label, suffixIcon: Container(padding: const EdgeInsets.all(8), child: const Text('📅', style: TextStyle(fontSize: 16)))),
         child: Text(
           date?.toLocal().toString().split(' ').first ?? 'Выберите дату',
           style: TextStyle(color: date != null ? Colors.black87 : Colors.grey.shade600),
@@ -763,7 +908,7 @@ class _DevicesPageState extends State<DevicesPage> {
     _emergencyStatus = d.emergencyStatus;
   }
 
-  void _addDevice() {
+  void _addDevice() async {
     final nd = Device(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: _nameController.text.trim(),
@@ -774,11 +919,36 @@ class _DevicesPageState extends State<DevicesPage> {
       commissioningDate: _commissioningDate,
       isOn: _isOn,
       emergencyStatus: _emergencyStatus,
+      pinX: null,
+      pinY: null,
     );
     setState(() {
       _devices.add(nd);
       _selectedDeviceId = nd.id;
     });
+    // Persist to local DB
+    try {
+      final username = SessionService.getCurrentUsername() ?? 'guest';
+      final stored = StoredDevice(
+        id: nd.id,
+        name: nd.name,
+        brand: nd.brand,
+        type: nd.type,
+        serialNumber: nd.serialNumber,
+        verificationDate: nd.verificationDate,
+        commissioningDate: nd.commissioningDate,
+        isOn: nd.isOn,
+        emergencyStatus: nd.emergencyStatus,
+      );
+      await DeviceDbService.add(username, stored);
+      await _loadDevices();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка сохранения устройства: $e')),
+        );
+      }
+    }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Устройство "${nd.name}" добавлено')));
     }
@@ -800,6 +970,27 @@ class _DevicesPageState extends State<DevicesPage> {
       final i = _devices.indexWhere((d) => d.id == old.id);
       if (i != -1) _devices[i] = up;
     });
+    // Persist update to DB and refresh list (preserving existing pin coords if any)
+    () async {
+      try {
+        final username = SessionService.getCurrentUsername() ?? 'guest';
+        final updatedStored = StoredDevice(
+          id: up.id,
+          name: up.name,
+          brand: up.brand,
+          type: up.type,
+          serialNumber: up.serialNumber,
+          verificationDate: up.verificationDate,
+          commissioningDate: up.commissioningDate,
+          isOn: up.isOn,
+          emergencyStatus: up.emergencyStatus,
+          pinX: old.pinX,
+          pinY: old.pinY,
+        );
+        await DeviceDbService.update(username, updatedStored);
+        await _loadDevices();
+      } catch (_) {}
+    }();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Устройство "${up.name}" обновлено')));
     }
@@ -810,6 +1001,14 @@ class _DevicesPageState extends State<DevicesPage> {
       _devices.removeWhere((x) => x.id == d.id);
       if (_selectedDeviceId == d.id) _selectedDeviceId = null;
     });
+    // Remove from DB and refresh
+    () async {
+      try {
+        final username = SessionService.getCurrentUsername() ?? 'guest';
+        await DeviceDbService.remove(username, d.id);
+        await _loadDevices();
+      } catch (_) {}
+    }();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Устройство "${d.name}" удалено')));
     }
