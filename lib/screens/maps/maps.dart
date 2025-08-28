@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../services/device_db_service.dart';
+import '../../services/session_service.dart';
 
 class MapData {
   final String id;
@@ -55,6 +57,41 @@ class _MapsPageState extends State<MapsPage> {
   bool _isAddingDevice = false;
   final TextEditingController _mapNameController = TextEditingController();
   final TextEditingController _deviceNameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeDefaultMapFromDb();
+  }
+
+  Future<void> _initializeDefaultMapFromDb() async {
+    final defaultUri = 'assets/maps/map1.png';
+    final username = SessionService.getCurrentUsername() ?? 'guest';
+    final stored = DeviceDbService.list(username);
+    final devices = stored
+        .where((d) => d.pinX != null && d.pinY != null)
+        .map((d) => DeviceMarker(
+              id: d.id,
+              name: d.name,
+              x: d.pinX!,
+              y: d.pinY!,
+            ))
+        .toList();
+
+    setState(() {
+      _maps
+        ..clear()
+        ..add(
+          MapData(
+            id: 'default-map',
+            name: 'Карта 1',
+            uri: defaultUri,
+            devices: devices,
+          ),
+        );
+      _selectedMap = _maps.first;
+    });
+  }
 
   @override
   void dispose() {
@@ -304,106 +341,72 @@ class _MapsPageState extends State<MapsPage> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: GestureDetector(
-                onTapUp: _isAddingDevice ? _handleMapTap : null,
-                child: Stack(
-                  children: [
-                    // Имитация PDF карты (можно заменить на реальный PDF viewer)
-                    Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.grey.shade200, Colors.grey.shade100],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  final height = constraints.maxHeight;
+                  final centerX = width / 2;
+                  final centerY = height / 2;
+                  return GestureDetector(
+                    onTapUp: _isAddingDevice ? _handleMapTap : null,
+                    child: Stack(
+                      children: [
+                        Image.asset(
+                          'assets/maps/map1.png',
+                          fit: BoxFit.cover,
+                          width: width,
+                          height: height,
                         ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.picture_as_pdf, 
-                                 size: 48, color: Colors.grey.shade600),
-                            const SizedBox(height: 8),
-                            Text(
-                              _selectedMap!.name,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _selectedMap!.uri,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Устройства на карте
-                    ..._selectedMap!.devices.map((device) {
-                      return Positioned(
-                        left: device.x,
-                        top: device.y,
-                        child: GestureDetector(
-                          onTap: () => _showDeviceInfo(device),
-                          child: Container(
-                            transform: Matrix4.translationValues(-12, -24, 0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(color: Colors.red),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black26,
-                                        blurRadius: 2,
-                                        offset: const Offset(0, 1),
+                        ..._selectedMap!.devices.map((device) {
+                          final dx = centerX + device.x;
+                          final dy = centerY + device.y;
+                          return Positioned(
+                            left: dx - 12,
+                            top: dy - 24,
+                            child: GestureDetector(
+                              onTap: () => _showDeviceInfo(device),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade700,
+                                      borderRadius: BorderRadius.circular(4),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.2),
+                                          blurRadius: 3,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      device.name,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    device.name,
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 2),
-                                Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
+                                  const SizedBox(height: 2),
+                                  const Icon(
                                     Icons.location_on,
-                                    color: Colors.white,
-                                    size: 16,
+                                    color: Colors.red,
+                                    size: 20,
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ],
-                ),
+                          );
+                        }),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -415,7 +418,13 @@ class _MapsPageState extends State<MapsPage> {
   void _handleMapTap(TapUpDetails details) {
     if (!_isAddingDevice || _selectedMap == null) return;
 
-    _showAddDeviceDialog(details.localPosition.dx, details.localPosition.dy);
+    // Convert absolute to relative (center-origin) like DevicesPage
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+    final size = renderBox.size;
+    final relX = details.localPosition.dx - size.width / 2;
+    final relY = details.localPosition.dy - size.height / 2;
+    _showAddDeviceDialog(relX, relY);
   }
 
   void _showAddMapDialog() {
@@ -590,23 +599,29 @@ class _MapsPageState extends State<MapsPage> {
     );
   }
 
-  void _selectPdfFile() {
-    // Имитация выбора файла
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Выбор PDF файла (функция для примера)'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
+  // void _selectPdfFile() {}
 
   void _addMap() {
     if (_mapNameController.text.trim().isEmpty) return;
 
+    final defaultUri = 'assets/maps/map1.png';
+    final username = SessionService.getCurrentUsername() ?? 'guest';
+    final stored = DeviceDbService.list(username);
+    final devices = stored
+        .where((d) => d.pinX != null && d.pinY != null)
+        .map((d) => DeviceMarker(
+              id: d.id,
+              name: d.name,
+              x: d.pinX!,
+              y: d.pinY!,
+            ))
+        .toList();
+
     final newMap = MapData(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: _mapNameController.text.trim(),
-      uri: 'http://localhost:8000/static/map1.pdf',
+      uri: defaultUri,
+      devices: devices,
     );
 
     setState(() {
@@ -616,7 +631,7 @@ class _MapsPageState extends State<MapsPage> {
 
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Карта "${newMap.name}" добавлена из http://localhost:8000/static/map1.pdf')),
+      SnackBar(content: Text('Карта "${newMap.name}" добавлена')), 
     );
   }
 

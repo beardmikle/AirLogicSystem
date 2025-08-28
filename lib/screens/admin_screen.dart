@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:ga1site/screens/devices/devices.dart';
+import 'package:ga1site/screens/monitoring/monitoring.dart';
 import '../models/measurement.dart';
 import '../services/api_service.dart';
 import '../screens/maps/maps.dart';
@@ -52,7 +53,7 @@ class _AdminScreenState extends State<AdminScreen> {
       case 'events':
         return 'Журнал событий';
       case 'messages':
-        return 'Текстовые сообщения';
+        return 'Уведомления';
       case 'employees':
         return 'Сотрудники';
       case 'devices':
@@ -111,7 +112,7 @@ SizedBox(
                   ),
                   _buildDrawerItem(
                     icon: Icons.mail,
-                    title: 'Текстовые сообщения',
+                    title: 'Уведомления',
                     page: 'messages',
                   ),
                   _buildDrawerItem(
@@ -258,167 +259,7 @@ SizedBox(
   }
 
   Widget _buildMonitoringPage() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 900),
-          child: FutureBuilder<DeviceData?>(
-            future: _futureData,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              }
-              if (snapshot.hasError) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Ошибка загрузки: ${snapshot.error}',
-                      style: const TextStyle(
-                        fontFamily: 'DM Sans',
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _futureData = _apiService.fetchDeviceData();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade700,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text(
-                        'Повторить',
-                        style: TextStyle(
-                          fontFamily: 'DM Sans',
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }
-              final data = snapshot.data;
-              if (data == null) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Нет данных',
-                      style: TextStyle(
-                        fontFamily: 'DM Sans',
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _futureData = _apiService.fetchDeviceData();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade700,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text(
-                        'Повторить',
-                        style: TextStyle(
-                          fontFamily: 'DM Sans',
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        runSpacing: 8,
-                        children: [
-                          Text(
-                            'Device ID: ${data.deviceId}',
-                            style: const TextStyle(
-                              fontFamily: 'DM Sans',
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            'Timestamp: ${data.timestamp}',
-                            style: const TextStyle(
-                              fontFamily: 'DM Sans',
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: DataTable(
-                        headingRowColor: WidgetStateProperty.all(Colors.grey.shade200),
-                        border: TableBorder.all(width: 1, color: Colors.grey.shade300),
-                        columns: const [
-                          DataColumn(
-                            label: Text(
-                              'Параметр',
-                              style: TextStyle(
-                                fontFamily: 'DM Sans',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          DataColumn(
-                            label: Text(
-                              'Значение',
-                              style: TextStyle(
-                                fontFamily: 'DM Sans',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          DataColumn(
-                            label: Text(
-                              'Единицы',
-                              style: TextStyle(
-                                fontFamily: 'DM Sans',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                        rows: [
-                          _row('CO', data.measurements.co),
-                          _row('NO2', data.measurements.no2),
-                          _row('Temperature', data.measurements.temperature),
-                          _row('Pressure', data.measurements.pressure),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
-    );
+    return const MonitoringPage();
   }
 
   Widget _buildEventsPage() {
@@ -458,7 +299,7 @@ SizedBox(
           Icon(Icons.mail, size: 64, color: Colors.grey),
           SizedBox(height: 16),
           Text(
-            'Текстовые сообщения',
+            'Уведомления',
             style: TextStyle(
               fontSize: 24,
               fontFamily: 'DM Sans',

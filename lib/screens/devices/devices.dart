@@ -115,7 +115,95 @@ class _DevicesPageState extends State<DevicesPage> {
 
   Future<void> _loadDevices() async {
     final username = SessionService.getCurrentUsername() ?? 'guest';
-    final stored = DeviceDbService.list(username);
+    var stored = DeviceDbService.list(username);
+    // If DB is empty, seed 6 demo devices with pins and different statuses
+    if (stored.isEmpty) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final samples = <StoredDevice>[
+        StoredDevice(
+          id: '${now}_1',
+          name: 'Датчик CO — Север',
+          brand: 'Acme',
+          type: 'Gas CO',
+          serialNumber: 'CO-A1-0001',
+          verificationDate: DateTime.now().subtract(const Duration(days: 120)),
+          commissioningDate: DateTime.now().subtract(const Duration(days: 365)),
+          isOn: true,
+          emergencyStatus: 0,
+          pinX: -180,
+          pinY: -120,
+        ),
+        StoredDevice(
+          id: '${now}_2',
+          name: 'Датчик NO2 — Восток',
+          brand: 'Contoso',
+          type: 'Gas NO2',
+          serialNumber: 'NO2-B2-0002',
+          verificationDate: DateTime.now().subtract(const Duration(days: 300)),
+          commissioningDate: DateTime.now().subtract(const Duration(days: 500)),
+          isOn: false,
+          emergencyStatus: 1,
+          pinX: 160,
+          pinY: -90,
+        ),
+        StoredDevice(
+          id: '${now}_3',
+          name: 'Термодатчик — Центр',
+          brand: 'Globex',
+          type: 'Temperature',
+          serialNumber: 'TMP-C3-0003',
+          verificationDate: DateTime.now().subtract(const Duration(days: 30)),
+          commissioningDate: DateTime.now().subtract(const Duration(days: 60)),
+          isOn: true,
+          emergencyStatus: 0,
+          pinX: 0,
+          pinY: 0,
+        ),
+        StoredDevice(
+          id: '${now}_4',
+          name: 'Давление — Юг',
+          brand: 'Initech',
+          type: 'Pressure',
+          serialNumber: 'PRS-D4-0004',
+          verificationDate: DateTime.now().subtract(const Duration(days: 200)),
+          commissioningDate: DateTime.now().subtract(const Duration(days: 700)),
+          isOn: true,
+          emergencyStatus: 1,
+          pinX: -140,
+          pinY: 130,
+        ),
+        StoredDevice(
+          id: '${now}_5',
+          name: 'Влажность — Запад',
+          brand: 'Umbrella',
+          type: 'Humidity',
+          serialNumber: 'HMD-E5-0005',
+          verificationDate: DateTime.now().subtract(const Duration(days: 90)),
+          commissioningDate: DateTime.now().subtract(const Duration(days: 400)),
+          isOn: false,
+          emergencyStatus: 0,
+          pinX: -260,
+          pinY: 20,
+        ),
+        StoredDevice(
+          id: '${now}_6',
+          name: 'Метан — Юго-Восток',
+          brand: 'Soylent',
+          type: 'Gas CH4',
+          serialNumber: 'CH4-F6-0006',
+          verificationDate: DateTime.now().subtract(const Duration(days: 15)),
+          commissioningDate: DateTime.now().subtract(const Duration(days: 45)),
+          isOn: true,
+          emergencyStatus: 0,
+          pinX: 220,
+          pinY: 160,
+        ),
+      ];
+      for (final s in samples) {
+        await DeviceDbService.add(username, s);
+      }
+      stored = DeviceDbService.list(username);
+    }
     setState(() {
       _devices
         ..clear()
