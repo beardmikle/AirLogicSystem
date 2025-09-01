@@ -1,7 +1,9 @@
 
 import 'package:flutter/material.dart';
-import 'package:ga1site/screens/devices/devices.dart';
+import 'package:ga1site/screens/devices/devices.dart' hide MonitoringPage;
 import 'package:ga1site/screens/monitoring/monitoring.dart';
+// import 'package:ga1site/screens/devices/devices.dart';
+// import 'package:ga1site/screens/monitoring/monitoring.dart';
 import '../models/measurement.dart';
 import '../services/api_service.dart';
 import '../screens/maps/maps.dart';

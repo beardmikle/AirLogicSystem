@@ -27,7 +27,7 @@ class Device {
     required this.serialNumber,
     this.verificationDate,
     this.commissioningDate,
-    this.isOn = false,
+    this.isOn = false,ыефе
     this.emergencyStatus = 0,
     this.pinX,
     this.pinY,
@@ -1193,3 +1193,5 @@ class _DevicesPageState extends State<DevicesPage> {
     }
   }
 }
+
+
